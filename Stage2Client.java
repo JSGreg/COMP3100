@@ -149,10 +149,11 @@ public class Stage2Client {
         int serverWait = 1000;
         int serverRun = 1000;
 
-        sendMSG("GETS All\n", out); // get server DATA
-        messg = readMSG(in);
-        String[] Data = parsing(messg); // parse DATA to find the amount of servers
+        sendMSG("GETS Avail " + job[4] + " " + job[5] + " " + job[6] + "\n", out);
+        String rcvdString = readMSG(in);
+        String[] Data = parsing(rcvdString);
         sendMSG("OK\n", out);
+
         // Initialise variable for server DATA
         int totalServer = Integer.parseInt(Data[1]); // Number of servers on system.
         Server[] updatedServerList = new Server[totalServer]; // Create server array.
@@ -175,36 +176,47 @@ public class Stage2Client {
         // loop through all servers to find the server with the least waiting and
         // running jobs
         for (int i = totalServer - 1; i >= 0; i--) {
-            jobCore = Integer.parseInt(job[4]);
-            jobMem = Integer.parseInt(job[5]);
-            jobDisk = Integer.parseInt(job[6]);
+
             // serverWait = serverList[i].waitingJob;
 
-            if (jobCore < updatedServerList[i].core) {
-                if (jobMem < updatedServerList[i].mem) {
-                    if (jobDisk < updatedServerList[i].disk) {
+            if (jobCore <= updatedServerList[i].core) {
+                System.out.println("I'm failing");
+                if (jobMem <= updatedServerList[i].mem) {
+
+                    if (jobDisk <= updatedServerList[i].disk) {
+
                         if (waitingTemp >= updatedServerList[i].waitingJob) {
-
+                            // if (runningTemp>=updatedServerList[i].waitingJob){
                             serverIndex = i;
+                            runningTemp = updatedServerList[i].runningJob;
                             waitingTemp = updatedServerList[i].waitingJob;
-
+                            serverInfo = updatedServerList[i].getType() + " " + updatedServerList[i].getID();
+                            // }
                         }
                     }
                 }
-            } else {
+            } else if (waitingTemp < updatedServerList[i].waitingJob) {
                 waitingTemp = updatedServerList[i].waitingJob;
+                runningTemp = updatedServerList[i].runningJob;
+            } else if (serverInfo.isEmpty()) {
+                sendMSG("GETS All", out);
+                sendMSG("OK\n", out);
+                rcvdString = readMSG(in);
+                Data = parsing(rcvdString);
+
+                String allInfo = Data[0] + Data[1];
+                return allInfo;
+
+                // updatedServerList[i].waitingJob ++;
+                // updatedServerList[i].runningJob ++;
+                // serverWait = updatedServerList[i].waitingJob;
+                // serverRun = updatedServerList[i].runningJob;
+                // } else {
+                // break;
             }
-
-            // updatedServerList[i].waitingJob ++;
-            // updatedServerList[i].runningJob ++;
-            // serverWait = updatedServerList[i].waitingJob;
-            // serverRun = updatedServerList[i].runningJob;
-            // } else {
-            // break;
-
         }
 
-        return serverIndex;
+        return serverInfo;
     }
 
     // public static String getServer (String[] job, BufferedReader in,
