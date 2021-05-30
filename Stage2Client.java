@@ -141,16 +141,13 @@ public class Stage2Client {
         }
     }
 
-    public static String getServerIndex(String job[], BufferedReader in, DataOutputStream out) throws IOException {
-        String messg = "";
+    // Gets the minimum requirements for jobs
+    public static String getMinimum(String job[], BufferedReader in, DataOutputStream out) throws IOException {
         String serverInfo = "";
         int jobCore = Integer.parseInt(job[4]);
-        // jobMem =
 
         int jobMem = Integer.parseInt(job[5]);
         int jobDisk = Integer.parseInt(job[6]);
-        int serverWait = 1000;
-        int serverRun = 1000;
 
         sendMSG("GETS Avail " + job[4] + " " + job[5] + " " + job[6] + "\n", out);
         String rcvdString = readMSG(in);
@@ -158,7 +155,6 @@ public class Stage2Client {
         sendMSG("OK\n", out);
         int totalServer;
         if (Data[1].equals("0")) {
-            // sendMSG("OK\n", out);
             sendMSG("GETS All\n", out);
             rcvdString = readMSG(in);
             rcvdString = readMSG(in);
@@ -167,26 +163,22 @@ public class Stage2Client {
             sendMSG("OK\n", out);
             totalServer = Integer.parseInt(Data[1]);
         } else {
-
             // Initialise variable for server DATA
             totalServer = Integer.parseInt(Data[1]); // Number of servers on system.
-            // System.out.println("Total Servers is " + totalServer);
         }
 
         Server[] updatedServerList = new Server[totalServer]; // Create server array.
-        int serverIndex = totalServer - 1;
 
         // Loop through all servers to create server list
         for (int i = 0; i < totalServer; i++) {
-            messg = readMSG(in);
-            String[] updatedStringList = parsing(messg);
+            rcvdString = readMSG(in);
+            String[] updatedStringList = parsing(rcvdString);
             updatedServerList[i] = new Server(updatedStringList[0], updatedStringList[1], updatedStringList[4],
                     updatedStringList[5], updatedStringList[6], updatedStringList[7], updatedStringList[8]);
-            // System.out.println("This is: " + updatedStringList[7]);
         }
 
         sendMSG("OK\n", out); // catch the "." at end of data stream.
-        messg = readMSG(in);
+        rcvdString = readMSG(in);
 
         int waitingTemp = 0;
         int runningTemp = 0;
@@ -195,92 +187,23 @@ public class Stage2Client {
         // loop through all servers to find the server with the least waiting and
         // running jobs
         for (int i = totalServer - 1; i >= 0; i--) {
-            // System.out.println("Mem is: " + updatedServerList[i].core + " Disk is: " +
-            // updatedServerList[i].disk + " Waiting jobs is: " +
-            // updatedServerList[i].runningJob);
-            // serverWait = serverList[i].waitingJob;
-
             if (jobCore <= updatedServerList[i].core) {
-                // System.out.println("I'm failing");
                 if (jobMem <= updatedServerList[i].mem) {
-
                     if (jobDisk <= updatedServerList[i].disk) {
-
                         if (waitingTemp >= updatedServerList[i].waitingJob) {
-                            // if (runningTemp>=updatedServerList[i].waitingJob){
-                            serverIndex = i;
                             runningTemp = updatedServerList[i].runningJob;
                             waitingTemp = updatedServerList[i].waitingJob;
                             serverInfo = updatedServerList[i].getType() + " " + updatedServerList[i].getID();
-                            // }
                         }
                     }
                 }
             } else if (waitingTemp < updatedServerList[i].waitingJob) {
                 waitingTemp = updatedServerList[i].waitingJob;
                 runningTemp = updatedServerList[i].runningJob;
-                // } else if (serverInfo.isEmpty()) {
-                // sendMSG("GETS All", out);
-                // sendMSG("OK\n", out);
-                // rcvdString = readMSG(in);
-                // Data = parsing(rcvdString);
-
-                // String allInfo = Data[0] + Data[1];
-                // return allInfo;
-
             }
-
-            // updatedServerList[i].waitingJob ++;
-            // updatedServerList[i].runningJob ++;
-            // serverWait = updatedServerList[i].waitingJob;
-            // serverRun = updatedServerList[i].runningJob;
-            // } else {
-            // break;
         }
-
         return serverInfo;
     }
-
-    // public static String getServer (String[] job, BufferedReader in,
-    // DataOutputStream out) throws IOException {
-
-    // // System.out.println(rcvd);
-
-    // sendMSG("GETS Avail " + job[4] + " " + job[5] + " " + job[6] +"\n" , out);
-    // String rcvdString = readMSG(in);
-    // String[] Data = parsing(rcvdString);
-    // sendMSG("OK\n", out);
-
-    // int numServer = Integer.parseInt(Data[1]);
-    // Server[] serverList= new Server [numServer];
-
-    // for (int i=0; i<numServer; i++){
-    // rcvdString = readMSG(in);
-    // String[] stringList = parsing(rcvdString);
-    // serverList [i] = new Server (stringList[0], stringList[4]);
-    // }
-
-    // sendMSG("OK\n", out);
-
-    // String server=serverList[0].Type;
-
-    // return server;
-    // }
-
-    // public static String findSuitable (String requiredCores, Server[] cores,
-    // BufferedReader in, DataOutputStream out) throws IOException {
-    // String suitable = "";
-
-    // String numCores = cores;
-
-    // for (int i=0; i<numServer; i++){
-    // if (){
-
-    // }
-    // }
-
-    // return suitable;
-    // }
 
     public static void main(String[] args) {
 
@@ -299,13 +222,14 @@ public class Stage2Client {
             // hold first job for later
             rcvd = readMSG(din);
             String firstjob = rcvd;
-            System.out.println(firstjob + " and " + rcvd);
+
             // String firstjob = rcvd;
 
             sendMSG("GETS All\n", dout); // get server DATA
             rcvd = readMSG(din);
             String[] Data = parsing(rcvd); // parse DATA to find the amount of servers
             sendMSG("OK\n", dout);
+
             // Initialise variable for server DATA
             int numServer = Integer.parseInt(Data[1]); // Number of servers on system.
             Server[] serverList = new Server[numServer]; // Create server array.
@@ -314,37 +238,21 @@ public class Stage2Client {
             for (int i = 0; i < numServer; i++) {
                 rcvd = readMSG(din);
                 String[] stringList = parsing(rcvd);
-                serverList[i] = new Server(stringList[0], stringList[4], stringList[5], stringList[6], stringList[7],
-                        stringList[8]);
+                serverList[i] = new Server(stringList[0], stringList[1], stringList[4], stringList[5], stringList[6],
+                        stringList[7], stringList[8]);
             }
 
             sendMSG("OK\n", dout); // catch the "." at end of data stream.
             rcvd = readMSG(din);
-            // Arrays.sort(serverList); // Sort Servers
 
-            // Schedule jobs to server
-            // Currently it schedules jobs to the first possible server regardless of its
-            // state (Jobs are never assigned to larger servers so turnaround time is
-            // longer)
             rcvd = firstjob;
 
             while (!rcvd.equals("NONE")) {
                 String[] job = parsing(rcvd); // Get job id and job type for switch statement
-                int serverIndex = numServer - 1;
 
                 switch (job[0]) {
                     case "JOBN": // Schedule job
-                        // System.out.println("This is a error");
-
-                        // serverIndex = getServerIndex(job, din, dout);
-
-                        sendMSG("SCHD " + job[2] + " " + getServerIndex(job, din, dout) + "\n", dout);
-
-                        // sendMSG("SCHD " + job[2] + " " + serverList[serverIndex].Type + " " +
-                        // serverList[serverIndex].ID + " \n", dout);
-                        // write a function to pick out capable server
-                        // sendMSG("SCHD " + job[2] + " " + job[4] + " 0\n", dout);
-
+                        sendMSG("SCHD " + job[2] + " " + getMinimum(job, din, dout) + "\n", dout);
                         break;
                     case "JCPL": // If job is being completed send REDY
                         sendMSG("REDY\n", dout);
