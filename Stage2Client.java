@@ -336,10 +336,12 @@ public class Stage2Client {
                     case "JOBN": // Schedule job
                         // System.out.println("This is a error");
 
-                        serverIndex = getServerIndex(job, din, dout);
+                        // serverIndex = getServerIndex(job, din, dout);
 
-                        sendMSG("SCHD " + job[2] + " " + serverList[serverIndex].Type + " " + serverList[serverIndex].ID
-                                + " \n", dout);
+                        sendMSG("SCHD " + job[2] + " " + getServerIndex(job, din, dout) + "\n", dout);
+
+                        // sendMSG("SCHD " + job[2] + " " + serverList[serverIndex].Type + " " +
+                        // serverList[serverIndex].ID + " \n", dout);
                         // write a function to pick out capable server
                         // sendMSG("SCHD " + job[2] + " " + job[4] + " 0\n", dout);
 
