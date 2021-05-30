@@ -148,9 +148,7 @@ public class Stage2Client {
         // jobMem =
 
         int jobMem = Integer.parseInt(job[5]);
-        ;
         int jobDisk = Integer.parseInt(job[6]);
-        ;
         int serverWait = 1000;
         int serverRun = 1000;
 
@@ -192,14 +190,18 @@ public class Stage2Client {
 
         int waitingTemp = 0;
         int runningTemp = 0;
+
+        serverInfo = updatedServerList[totalServer - 1].getType() + " " + updatedServerList[totalServer - 1].getID();
         // loop through all servers to find the server with the least waiting and
         // running jobs
         for (int i = totalServer - 1; i >= 0; i--) {
-
+            // System.out.println("Mem is: " + updatedServerList[i].core + " Disk is: " +
+            // updatedServerList[i].disk + " Waiting jobs is: " +
+            // updatedServerList[i].runningJob);
             // serverWait = serverList[i].waitingJob;
 
             if (jobCore <= updatedServerList[i].core) {
-                System.out.println("I'm failing");
+                // System.out.println("I'm failing");
                 if (jobMem <= updatedServerList[i].mem) {
 
                     if (jobDisk <= updatedServerList[i].disk) {
@@ -217,22 +219,23 @@ public class Stage2Client {
             } else if (waitingTemp < updatedServerList[i].waitingJob) {
                 waitingTemp = updatedServerList[i].waitingJob;
                 runningTemp = updatedServerList[i].runningJob;
-            } else if (serverInfo.isEmpty()) {
-                sendMSG("GETS All", out);
-                sendMSG("OK\n", out);
-                rcvdString = readMSG(in);
-                Data = parsing(rcvdString);
+                // } else if (serverInfo.isEmpty()) {
+                // sendMSG("GETS All", out);
+                // sendMSG("OK\n", out);
+                // rcvdString = readMSG(in);
+                // Data = parsing(rcvdString);
 
-                String allInfo = Data[0] + Data[1];
-                return allInfo;
+                // String allInfo = Data[0] + Data[1];
+                // return allInfo;
 
-                // updatedServerList[i].waitingJob ++;
-                // updatedServerList[i].runningJob ++;
-                // serverWait = updatedServerList[i].waitingJob;
-                // serverRun = updatedServerList[i].runningJob;
-                // } else {
-                // break;
             }
+
+            // updatedServerList[i].waitingJob ++;
+            // updatedServerList[i].runningJob ++;
+            // serverWait = updatedServerList[i].waitingJob;
+            // serverRun = updatedServerList[i].runningJob;
+            // } else {
+            // break;
         }
 
         return serverInfo;
