@@ -141,11 +141,16 @@ public class Stage2Client {
         }
     }
 
-    public static int getServerIndex(String job[], BufferedReader in, DataOutputStream out) throws IOException {
+    public static String getServerIndex(String job[], BufferedReader in, DataOutputStream out) throws IOException {
         String messg = "";
-        int jobCore;
-        int jobMem;
-        int jobDisk;
+        String serverInfo = "";
+        int jobCore = Integer.parseInt(job[4]);
+        // jobMem =
+
+        int jobMem = Integer.parseInt(job[5]);
+        ;
+        int jobDisk = Integer.parseInt(job[6]);
+        ;
         int serverWait = 1000;
         int serverRun = 1000;
 
@@ -153,9 +158,23 @@ public class Stage2Client {
         String rcvdString = readMSG(in);
         String[] Data = parsing(rcvdString);
         sendMSG("OK\n", out);
+        int totalServer;
+        if (Data[1].equals("0")) {
+            // sendMSG("OK\n", out);
+            sendMSG("GETS All\n", out);
+            rcvdString = readMSG(in);
+            rcvdString = readMSG(in);
+            Data = parsing(rcvdString);
 
-        // Initialise variable for server DATA
-        int totalServer = Integer.parseInt(Data[1]); // Number of servers on system.
+            sendMSG("OK\n", out);
+            totalServer = Integer.parseInt(Data[1]);
+        } else {
+
+            // Initialise variable for server DATA
+            totalServer = Integer.parseInt(Data[1]); // Number of servers on system.
+            // System.out.println("Total Servers is " + totalServer);
+        }
+
         Server[] updatedServerList = new Server[totalServer]; // Create server array.
         int serverIndex = totalServer - 1;
 
