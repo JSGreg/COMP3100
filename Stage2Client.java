@@ -6,8 +6,8 @@ import javax.print.attribute.standard.JobHoldUntil;
 import javax.xml.crypto.Data;
 
 public class Stage2Client {
-
-    public static class Server implements Comparable<Server> { // Server class to hold server info
+    // Server Class to hold server info
+    public static class Server implements Comparable<Server> {
         String Type = "";
         int ID;
         int core;
@@ -100,6 +100,7 @@ public class Stage2Client {
         return splitData;
     }
 
+    // Fucntion to send messages
     public static void sendMSG(String msg, DataOutputStream out) {
         try {
             out.write(msg.getBytes());
@@ -110,12 +111,14 @@ public class Stage2Client {
 
     }
 
+    // Function to read messages
     public static String readMSG(BufferedReader in) throws IOException {
         String message = in.readLine();
         System.out.println("server says: " + message);
         return message;
     }
 
+    // Inital Handshake
     public static void doHandShake(BufferedReader in, DataOutputStream out) {
         try {
             String received = ""; // holds received message from server
@@ -141,19 +144,21 @@ public class Stage2Client {
         }
     }
 
-    // Gets the minimum requirements for jobs
+    // Scheduling algorithm
     public static String getHalfAvail(String job[], BufferedReader in, DataOutputStream out) throws IOException {
         String serverInfo = "";
         int jobCore = Integer.parseInt(job[4]);
-
         int jobMem = Integer.parseInt(job[5]);
         int jobDisk = Integer.parseInt(job[6]);
 
+        // Requests available server for specific jobs
         sendMSG("GETS Avail " + job[4] + " " + job[5] + " " + job[6] + "\n", out);
         String rcvdString = readMSG(in);
         String[] Data = parsing(rcvdString);
         sendMSG("OK\n", out);
-        int totalServer;
+        int totalServer;// Number of servers on system.
+
+        // If no available servers get all servers instead
         if (Data[1].equals("0")) {
             sendMSG("GETS All\n", out);
             rcvdString = readMSG(in);
@@ -161,13 +166,15 @@ public class Stage2Client {
             Data = parsing(rcvdString);
 
             sendMSG("OK\n", out);
+            // Initialise variable for server DATA
             totalServer = Integer.parseInt(Data[1]);
         } else {
             // Initialise variable for server DATA
-            totalServer = Integer.parseInt(Data[1]); // Number of servers on system.
+            totalServer = Integer.parseInt(Data[1]);
         }
 
-        Server[] updatedServerList = new Server[totalServer]; // Create server array.
+        // Create server array.
+        Server[] updatedServerList = new Server[totalServer];
 
         // Loop through all servers to create server list
         for (int i = 0; i < totalServer; i++) {
@@ -176,59 +183,66 @@ public class Stage2Client {
             updatedServerList[i] = new Server(updatedStringList[0], updatedStringList[1], updatedStringList[4],
                     updatedStringList[5], updatedStringList[6], updatedStringList[7], updatedStringList[8]);
         }
-
-        sendMSG("OK\n", out); // catch the "." at end of data stream.
+        // catch the "." at end of data stream.
+        sendMSG("OK\n", out);
         rcvdString = readMSG(in);
 
+        // Tracks the lowest number of waiting jobs on servers, when server starts
+        // waiting jobs is always 0
         int waitingTemp = 0;
 
+        // Builds an inital string for the SCHD command
         serverInfo = updatedServerList[totalServer - 1].getType() + " " + updatedServerList[totalServer - 1].getID();
-        // loop through all servers to find the server with the least waiting and
-        // running jobs
+
+        // loop through all servers to find the server that matches the requiremnts with
+        // the least waiting and running jobs
         for (int i = totalServer - 1; i >= 0; i--) {
+
+            // Checks server cores and ID
             if (jobCore <= updatedServerList[i].core && updatedServerList[i].ID % 2 != 0) {
+                // Checks server memory
                 if (jobMem <= updatedServerList[i].mem) {
+                    // Checks server Disk
                     if (jobDisk <= updatedServerList[i].disk) {
+                        // Checks for the server with the lowest waiting jobs
                         if (waitingTemp >= updatedServerList[i].waitingJob) {
+                            // Updates the waiting jobs to the current lowest
                             waitingTemp = updatedServerList[i].waitingJob;
                             serverInfo = updatedServerList[i].getType() + " " + updatedServerList[i].getID();
                         }
                     }
                 }
-            } else if (waitingTemp < updatedServerList[i].waitingJob) {
-                waitingTemp = updatedServerList[i].waitingJob;
             }
         }
         return serverInfo;
     }
 
     public static void main(String[] args) {
-
         try {
-
             Socket s = new Socket("localhost", 50000);
-
             BufferedReader din = new BufferedReader(new InputStreamReader(s.getInputStream()));
             DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-
             String rcvd = "";
 
             // Handshake with server
             doHandShake(din, dout);
-
             rcvd = readMSG(din);
 
             while (!rcvd.equals("NONE")) {
-                String[] job = parsing(rcvd); // Get job id and job type for switch statement
+                // Get job id and job type for switch statement and scheduling
+                String[] job = parsing(rcvd);
 
                 switch (job[0]) {
-                    case "JOBN": // Schedule job
+                    // Schedule job
+                    case "JOBN":
                         sendMSG("SCHD " + job[2] + " " + getHalfAvail(job, din, dout) + "\n", dout);
                         break;
-                    case "JCPL": // If job is being completed send REDY
+                    // If job is being completed send REDY
+                    case "JCPL":
                         sendMSG("REDY\n", dout);
                         break;
-                    case "OK": // Ask for next job
+                    // Ask for next job
+                    case "OK":
                         sendMSG("REDY\n", dout);
                         break;
                 }
