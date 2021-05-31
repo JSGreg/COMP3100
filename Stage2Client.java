@@ -2,9 +2,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import javax.print.attribute.standard.JobHoldUntil;
-import javax.xml.crypto.Data;
-
 public class Stage2Client {
     // Server Class to hold server info
     public static class Server implements Comparable<Server> {
